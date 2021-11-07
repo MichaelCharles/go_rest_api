@@ -15,10 +15,10 @@ func NewDatabase() (*gorm.DB, error) {
 	dbUsername := os.Getenv("DB_USERNAME")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbHost := os.Getenv("DB_HOST")
-	dbTable := os.Getenv("DB_TABLE")
+	dbDatabase := os.Getenv("DB_DATABASE")
 	dbPort := os.Getenv("DB_PORT")
 
-	connectionString := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", dbHost, dbPort, dbUsername, dbTable, dbPassword)
+	connectionString := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", dbHost, dbPort, dbUsername, dbDatabase, dbPassword)
 	fmt.Println(connectionString)
 
 	db, err := gorm.Open("postgres", connectionString)
