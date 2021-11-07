@@ -2,8 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
+
+	"github.com/mcaubrey/go_rest_api/internal/database"
+	"github.com/mcaubrey/go_rest_api/internal/services/comment"
 	transportHTTP "github.com/mcaubrey/go_rest_api/internal/transport/http"
 )
 
@@ -13,9 +18,24 @@ type App struct {
 
 // Run - sets up our application.
 func (app *App) Run() error {
-	fmt.Println("Setting up our app...")
+	env := godotenv.Load()
+	if env != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-	handler := transportHTTP.NewHandler()
+	fmt.Println("Setting up our app...")
+	db, err := database.NewDatabase()
+	if err != nil {
+		return err
+	}
+	err = database.MigrateDB(db)
+	if err != nil {
+		return err
+	}
+
+	commentService := comment.NewService(db)
+
+	handler := transportHTTP.NewHandler(commentService)
 	handler.SetupRoutes()
 
 	if err := http.ListenAndServe(":8080", handler.Router); err != nil {
@@ -26,7 +46,7 @@ func (app *App) Run() error {
 }
 
 func main() {
-	fmt.Println("This was a triumph.")
+	fmt.Println("Starting up...")
 	app := App{}
 	if err := app.Run(); err != nil {
 		fmt.Println("Error starting up our REST API")
