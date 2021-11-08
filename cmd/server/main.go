@@ -1,29 +1,35 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 
 	"github.com/mcaubrey/go_rest_api/internal/database"
 	"github.com/mcaubrey/go_rest_api/internal/services/comment"
 	transportHTTP "github.com/mcaubrey/go_rest_api/internal/transport/http"
 )
 
-// App - the struct which contains things like pointers to database connections
+// App - contain application information
 type App struct {
+	Version string
+	Name    string
 }
 
 // Run - sets up our application.
 func (app *App) Run() error {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+
 	env := godotenv.Load()
 	if env != nil {
-		log.Fatal("Error loading .env file")
+		logrus.Fatal("Could not read env file")
 	}
 
-	fmt.Println("Setting up our app...")
+	logrus.WithFields(logrus.Fields{
+		"AppName":    app.Name,
+		"AppVersion": app.Version,
+	}).Info("Setting up application")
 	db, err := database.NewDatabase()
 	if err != nil {
 		return err
@@ -46,10 +52,14 @@ func (app *App) Run() error {
 }
 
 func main() {
-	fmt.Println("Starting up...")
-	app := App{}
+	logrus.Info("Starting up...")
+	app := App{
+		Name:    "Commenting Service",
+		Version: "0.0.1",
+	}
+
 	if err := app.Run(); err != nil {
-		fmt.Println("Error starting up our REST API")
-		fmt.Println(err)
+		logrus.Error("Error starting up our REST API")
+		logrus.Fatal(err)
 	}
 }

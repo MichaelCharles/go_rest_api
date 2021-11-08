@@ -6,19 +6,21 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/sirupsen/logrus"
 )
 
 // NewDatabase - returns a pointer to a new database connection
 func NewDatabase() (*gorm.DB, error) {
-	fmt.Println("Setting up new database connection")
+	logrus.Info("Setting up a new database connection")
 
 	dbUsername := os.Getenv("DB_USERNAME")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbHost := os.Getenv("DB_HOST")
 	dbDatabase := os.Getenv("DB_DATABASE")
 	dbPort := os.Getenv("DB_PORT")
+	dbSSLMode := os.Getenv("DB_SSL_MODE")
 
-	connectionString := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", dbHost, dbPort, dbUsername, dbDatabase, dbPassword)
+	connectionString := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s", dbHost, dbPort, dbUsername, dbDatabase, dbPassword, dbSSLMode)
 	fmt.Println(connectionString)
 
 	db, err := gorm.Open("postgres", connectionString)
