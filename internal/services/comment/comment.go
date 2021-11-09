@@ -9,6 +9,13 @@ type Service struct {
 	DB *gorm.DB
 }
 
+// NewService - returns a new comments service
+func NewService(db *gorm.DB) *Service {
+	return &Service{
+		DB: db,
+	}
+}
+
 // Comment -
 type Comment struct {
 	gorm.Model
@@ -82,11 +89,4 @@ func (s *Service) GetAllComments() ([]Comment, error) {
 		return comments, result.Error
 	}
 	return comments, nil
-}
-
-// NewService - returns a new comments service
-func NewService(db *gorm.DB) *Service {
-	return &Service{
-		DB: db,
-	}
 }

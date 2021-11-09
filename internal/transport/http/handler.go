@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/mcaubrey/go_rest_api/internal/services/comment"
+	"github.com/mcaubrey/go_rest_api/internal/services/user"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,6 +14,7 @@ import (
 type Handler struct {
 	Router         *mux.Router
 	CommentService *comment.Service
+	UserService    *user.Service
 }
 
 // Response - an object to store responses from our API
@@ -22,23 +24,11 @@ type Response struct {
 }
 
 // NewHandler - returns a pointer to a Handler
-func NewHandler(commentService *comment.Service) *Handler {
+func NewHandler(commentService *comment.Service, userService *user.Service) *Handler {
 	return &Handler{
 		CommentService: commentService,
+		UserService:    userService,
 	}
-}
-
-// LoggingMiddleware - adds middleware around endpoints
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		logrus.WithFields(logrus.Fields{
-			"Method": r.Method,
-			"Path":   r.URL.Path,
-		}).Info("handled request")
-
-		next.ServeHTTP(w, r)
-	})
 }
 
 // SetupRoutes - sets up all the routes for our application
@@ -47,11 +37,15 @@ func (h *Handler) SetupRoutes() {
 	h.Router = mux.NewRouter()
 	h.Router.Use(LoggingMiddleware)
 
-	h.Router.HandleFunc("/api/comment", h.GetAllComments).Methods("GET")
-	h.Router.HandleFunc("/api/comment/{id}", h.GetComment).Methods("GET")
-	h.Router.HandleFunc("/api/comment", h.PostComment).Methods("POST")
-	h.Router.HandleFunc("/api/comment/{id}", h.UpdateComment).Methods("PUT")
-	h.Router.HandleFunc("/api/comment/{id}", h.DeleteComment).Methods("DELETE")
+	h.Router.HandleFunc("/api/comment", JWTAuth(h.GetAllComments)).Methods("GET")
+	h.Router.HandleFunc("/api/comment/{id}", JWTAuth(h.GetComment)).Methods("GET")
+	h.Router.HandleFunc("/api/comment", JWTAuth(h.PostComment)).Methods("POST")
+	h.Router.HandleFunc("/api/comment/{id}", JWTAuth(h.UpdateComment)).Methods("PUT")
+	h.Router.HandleFunc("/api/comment/{id}", JWTAuth(h.DeleteComment)).Methods("DELETE")
+
+	h.Router.HandleFunc("/api/user", h.GetAllUsers).Methods("GET")
+	h.Router.HandleFunc("/api/login_user", h.LoginUser).Methods("POST")
+	h.Router.HandleFunc("/api/register_user", h.RegisterUser).Methods("POST")
 
 	h.Router.HandleFunc("/api/health", healthCheck)
 }

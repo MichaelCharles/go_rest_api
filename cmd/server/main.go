@@ -8,6 +8,7 @@ import (
 
 	"github.com/mcaubrey/go_rest_api/internal/database"
 	"github.com/mcaubrey/go_rest_api/internal/services/comment"
+	"github.com/mcaubrey/go_rest_api/internal/services/user"
 	transportHTTP "github.com/mcaubrey/go_rest_api/internal/transport/http"
 )
 
@@ -30,18 +31,21 @@ func (app *App) Run() error {
 		"AppName":    app.Name,
 		"AppVersion": app.Version,
 	}).Info("Setting up application")
+
 	db, err := database.NewDatabase()
-	if err != nil {
-		return err
-	}
-	err = database.MigrateDB(db)
 	if err != nil {
 		return err
 	}
 
 	commentService := comment.NewService(db)
+	userService := user.NewService(db)
 
-	handler := transportHTTP.NewHandler(commentService)
+	err = database.MigrateDB(db)
+	if err != nil {
+		return err
+	}
+
+	handler := transportHTTP.NewHandler(commentService, userService)
 	handler.SetupRoutes()
 
 	if err := http.ListenAndServe(":8080", handler.Router); err != nil {
